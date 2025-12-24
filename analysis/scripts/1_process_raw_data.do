@@ -3,8 +3,8 @@ set more off
 
 cd "/Users/kismet/economics/predoc_datatask25/analysis/scripts"
 
-// import delimited "../raw_data/ercot_resource_output.csv", clear
-// save "../int_data/ercot_res_out.dta", replace
+import delimited "../raw_data/ercot_resource_output.csv", clear
+save "../int_data/ercot_res_out.dta", replace
 
 use "../int_data/ercot_res_out", clear
 describe
@@ -122,6 +122,57 @@ save "../int_data/ercot_res_type", replace
 
 use ../int_data/ercot_res_out, clear
 merge m:1 resource_name using ../int_data/ercot_res_type 
+
+// 6. Plot the following:
+// (a) output summed by day
+// (b) output summed by hour-of-day (hours 0-23)
+// (c) output summed by hour-of-day and by Fuel Type (the variable you defined in 5.)
+// Discuss the patterns you see in each plot.
+
+rename telemetered_net_output output
+label variable output "Telemetered net output"
+
+gen date = dofc(timestamp)
+format date %td
+
+preserve
+collapse (sum) output, by(date)
+tset date
+tsline output
+graph export ../results/figures/daily_output.png, replace
+restore
+
+gen day = dow(date)
+label define dowlbl 0 "Sunday" 1 "Monday" 2 "Tuesday" 3 "Wednesday" ///
+                   4 "Thursday" 5 "Friday" 6 "Saturday"
+label values day dowlbl
+ 
+graph bar (sum) output, over(day)
+graph export ../results/figures/day_out.png, replace
+
+
+gen hour = hh(timestamp)
+
+graph bar (sum) output, over(hour)
+graph export ../results/figures/hourly_output.png, replace
+
+
+
+graph bar (sum) output, over(hour) over(fuel_type)
+graph export ../results/figures/hourly_output_by_type.png, replace
+
+// the day output gradually increases from sunday to wednesday and then gradually decreases from Thursday to Saturday
+
+//the hourly output starts increasing at 4 am and then peaks at 8 am then gradually falls till 3pm and starts to increase and then peaks at 7pm and starts falling gradually till 3am.
+
+// The hourly patterns we observe is due to fluctuations in the output of Natural gas, coal, wind, solar and others. Coal, Natural gas and other mimick the hourly output pattern.
+
+
+
+
+
+
+
 
 
 
