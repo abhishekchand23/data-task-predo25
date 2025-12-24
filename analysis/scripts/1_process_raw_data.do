@@ -6,7 +6,7 @@ cd "/Users/kismet/economics/predoc_datatask25/analysis/scripts"
 // import delimited "../raw_data/ercot_resource_output.csv", clear
 // save "../int_data/ercot_res_out.dta", replace
 
-use "../int_data/ercot_res_out"
+use "../int_data/ercot_res_out", clear
 describe
 label data "data for electric reliability council of texas (ercot)"
 
@@ -62,6 +62,7 @@ order resource_name
 list if n_distinct>1
 restore 
 
+save "../int_data/ercot_res_out.dta", replace
 // 4. Now turn to resource type.csv
 // (a) How many unique, non-missing values does Resource Type take? Can you find definitions for them? (No need to define all of them, just attempt a few)
 import delimited "../raw_data/ercot_resource_types.csv", clear varnames(1)
@@ -90,6 +91,37 @@ browse if strpos(resource_name,"WIND")
 replace resource_type = "WIND" if resource_name == "SSPURTWO_WIND_1"
 replace resource_type = "WIND" if resource_name == "SWEETWN2_WND24"
 
+// 5. Based on the following definitions, use the resource type column to make a "Fuel Type" column. After doing so, merge Fuel Type and Resource Type onto ercot resource output.csv using Resource Name (you should end up with 6 unique values of Fuel Type).
+// • DSL - Other
+// • SCGT90 - Natural Gas
+// • WIND - Wind
+// • PWRSTR - Other
+// • HYDRO - Other
+// • CCGT90 - Natural Gas
+// • PVGR - Solar
+// • SCLE90 - Natural Gas
+// • GSREH - Natural Gas
+// • CCLE90 - Natural Gas
+// • CLLIG - Coal
+// • GSSUP - Natural Gas
+// • NUC - Nuclear
+// • GSNONR - Natural Gas
+// • RENEW - Other
+
+gen fuel_type = ""
+
+replace fuel_type = "Other" ///
+	                         if inlist(resource_type, "DSL", "PWRSTR", "HYDRO", "RENEW")
+replace fuel_type = "Natural Gas" ///
+	                         if inlist(resource_type, "SCGT90", "CCGT90", "SCLE90","GSREH", "GSSUP", "GSNONR", "CCLE90")
+replace fuel_type = "Wind".   if resource_type == "WIND"
+replace fuel_type = "Solar"   if resource_type == "PVGR"
+replace fuel_type = "Coal"    if resource_type == "CLLIG"
+replace fuel_type = "Nuclear" if resource_type == "NUC"
+save "../int_data/ercot_res_type", replace
+
+use ../int_data/ercot_res_out, clear
+merge m:1 resource_name using ../int_data/ercot_res_type 
 
 
 
