@@ -8,7 +8,7 @@ cd "/Users/kismet/economics/predoc_datatask25/analysis/scripts"
 
 use "../int_data/ercot_res_out"
 describe
-label data "electric reliability council of texas (ercot)"
+label data "data for electric reliability council of texas (ercot)"
 
 * 1. How many unique values does the variable Resource Name take in the data? the variable
 * QSE?
@@ -26,3 +26,25 @@ codebook resource_name
 // also responsible for submitting a Current Operating Plan for all resources it 
 // represents and offering or procuring Ancillary Services as needed to serve their 
 // represented load. QSEs are responsible for settling financially with ERCOT
+
+label variable qse "qualified scheduling entities"
+
+
+// 3. Find the set of unique QSE/Resource Name pairs. Answer the following questions.
+
+// (a) Is it ever the case that a single QSE is paired to multiple resource names? What might this indicate about the relationship between QSEs and Resource Names? What are the 10 largest QSEs in terms of the number of unique Resource Names they are paired to in the data?
+
+gen double timestamp = clock(sced_time_stamp, "MDYhm") 
+format timestamp %tc
+
+preserve 
+contract qse resource_name
+bysort qse: gen n_distinct = _N
+bysort qse (n_distinct): keep if _n == 1
+gsort -n_distinct
+list qse n_distinct in 1/11
+restore
+
+// (b) Is it ever the case that a single Resource Name is paired to more than one QSE in the
+// data? For how many Resource Names is this true for? Why might a single Resource
+// Name pair with multiple QSEs in the data? Hint: Look at how pairs change over time
