@@ -37,14 +37,59 @@ label variable qse "qualified scheduling entities"
 gen double timestamp = clock(sced_time_stamp, "MDYhm") 
 format timestamp %tc
 
-preserve 
+preserve
 contract qse resource_name
 bysort qse: gen n_distinct = _N
 bysort qse (n_distinct): keep if _n == 1
 gsort -n_distinct
 list qse n_distinct in 1/11
+
+list if n_distinct <= 1
+summarize n_distinct
+tab n_distinct
+// histogram n_distinct
 restore
 
-// (b) Is it ever the case that a single Resource Name is paired to more than one QSE in the
-// data? For how many Resource Names is this true for? Why might a single Resource
+// The QSE's have more than one client for which they place the bids and makes offers to.
+
+// (b) Is it ever the case that a single Resource Name is paired to more than one QSE in the data? For how many Resource Names is this true for? Why might a single Resource
 // Name pair with multiple QSEs in the data? Hint: Look at how pairs change over time
+* there are 6 resources that have more than 1 qse
+preserve 
+contract resource_name qse
+bysort resource_name: gen n_distinct = _N
+order resource_name
+list if n_distinct>1
+restore 
+
+// 4. Now turn to resource type.csv
+// (a) How many unique, non-missing values does Resource Type take? Can you find definitions for them? (No need to define all of them, just attempt a few)
+import delimited "../raw_data/ercot_resource_types.csv", clear varnames(1)
+codebook resource_type // levelsof also can be used but you will have to count yourself
+
+* there are 15 unique values resource type takes. As I 
+* CLLIG Controllable Load Resource (CLR): Large industrial/commercial users who agree to lower their demand when the grid needs power.
+
+
+// (b) Are there any empty strings in the resource type column? Which resource names are missing their type? Can you guess what the missing values should be? Fill in the missing values with your guesses (you will carry your filled in guesses for the remainder of the data task).
+
+*Yes there areresource_name
+browse if missing(resource_type)
+
+/*the below resource names are missing their type
+GALLOWAY_SOLAR1
+ROSELAND_SOLAR3
+SSPURTWO_WIND_1
+SWEETWN2_WND24
+*/
+
+browse if strpos(resource_name,"GALLOWAY")
+replace resource_type = "PVGR" if resource_name == "GALLOWAY_SOLAR1"
+replace resource_type = "PVGR" if resource_name == "ROSELAND_SOLAR3"
+browse if strpos(resource_name,"WIND")
+replace resource_type = "WIND" if resource_name == "SSPURTWO_WIND_1"
+replace resource_type = "WIND" if resource_name == "SWEETWN2_WND24"
+
+
+
+
