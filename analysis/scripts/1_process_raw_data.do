@@ -168,6 +168,27 @@ graph export ../results/figures/hourly_output_by_type.png, replace
 // The hourly patterns we observe is due to fluctuations in the output of Natural gas, coal, wind, solar and others. Coal, Natural gas and other mimick the hourly output pattern.
 
 
+// 7. Looking at the plot from 6.(a), does this data look stationary? Using the data summed at the daily level, test for a unit root and interpret the result. Now calculate its first difference and plot it. Does it look stationary?
+
+preserve
+collapse (sum) output, by(date)
+tsset date
+tsline output
+*No looking at the plot the series does not look stationary.
+dfuller output //we fail to reject that series is non-stationary
+pperron output // er fail to reject random walk
+dfgls output // not sure how to interpret the results 
+
+generate fdoutput = D.output
+tsline fdoutput
+graph export ../results/figures/fdoutput.png, replace
+dfuller fdoutput
+*no this also does not look stationary
+restore
+
+
+
+
 
 
 
