@@ -75,7 +75,7 @@ codebook resource_type // levelsof also can be used but you will have to count y
 // (b) Are there any empty strings in the resource type column? Which resource names are missing their type? Can you guess what the missing values should be? Fill in the missing values with your guesses (you will carry your filled in guesses for the remainder of the data task).
 
 *Yes there areresource_name
-browse if missing(resource_type)
+// browse if missing(resource_type)
 
 /*the below resource names are missing their type
 GALLOWAY_SOLAR1
@@ -84,10 +84,10 @@ SSPURTWO_WIND_1
 SWEETWN2_WND24
 */
 
-browse if strpos(resource_name,"GALLOWAY")
+// browse if strpos(resource_name,"GALLOWAY")
 replace resource_type = "PVGR" if resource_name == "GALLOWAY_SOLAR1"
 replace resource_type = "PVGR" if resource_name == "ROSELAND_SOLAR3"
-browse if strpos(resource_name,"WIND")
+// browse if strpos(resource_name,"WIND")
 replace resource_type = "WIND" if resource_name == "SSPURTWO_WIND_1"
 replace resource_type = "WIND" if resource_name == "SWEETWN2_WND24"
 
@@ -138,7 +138,7 @@ format date %td
 preserve
 collapse (sum) output, by(date)
 tset date
-tsline output
+quietly tsline output
 graph export ../results/figures/daily_output.png, replace
 restore
 
@@ -147,18 +147,18 @@ label define dowlbl 0 "Sunday" 1 "Monday" 2 "Tuesday" 3 "Wednesday" ///
                    4 "Thursday" 5 "Friday" 6 "Saturday"
 label values day dowlbl
  
-graph bar (sum) output, over(day)
+quietly graph bar (sum) output, over(day)
 graph export ../results/figures/day_out.png, replace
 
 
 gen hour = hh(timestamp)
 
-graph bar (sum) output, over(hour)
+quietly graph bar (sum) output, over(hour)
 graph export ../results/figures/hourly_output.png, replace
 
 
 
-graph bar (sum) output, over(hour) over(fuel_type)
+quietly graph bar (sum) output, over(hour) over(fuel_type)
 graph export ../results/figures/hourly_output_by_type.png, replace
 
 // the day output gradually increases from sunday to wednesday and then gradually decreases from Thursday to Saturday
@@ -173,7 +173,7 @@ graph export ../results/figures/hourly_output_by_type.png, replace
 preserve
 collapse (sum) output, by(date)
 tsset date
-tsline output
+quietly tsline output
 *No looking at the plot the series does not look stationary.
 dfuller output //we fail to reject that series is non-stationary
 pperron output // er fail to reject random walk
@@ -184,6 +184,16 @@ tsline fdoutput
 graph export ../results/figures/fdoutput.png, replace
 dfuller fdoutput
 *no this also does not look stationary
+restore
+
+// 8. Now sum output at the hourly level (day-hour, not hour-of-day). Fit an AR(3) model on electricity output. Do you believe an AR model is a good fit? Why or why not?
+preserve
+collapse (sum) output, by(date hour)
+gen double dayhour = cofd(date) +  (hour * 60 * 60 * 1000) //clock of the date and convert the hour to millisecond
+format dayhour %tc
+tsset dayhour, delta(1 hour) // default delta is 1 millisecond, need hour here
+quietly tsline output, xtitle(Day - Hour) ytitle(Output) title(Day Hour Output) xlabel(,angle(45) labsize(small)) tmtick(##24)
+graph export ../results/figures/dhoutput.png, replace
 restore
 
 
