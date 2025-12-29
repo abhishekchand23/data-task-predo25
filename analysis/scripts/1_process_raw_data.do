@@ -194,7 +194,24 @@ format dayhour %tc
 tsset dayhour, delta(1 hour) // default delta is 1 millisecond, need hour here
 quietly tsline output, xtitle(Day - Hour) ytitle(Output) title(Day Hour Output) xlabel(,angle(45) labsize(small)) tmtick(##24)
 graph export ../results/figures/dhoutput.png, replace
+arima output, ar(3) // TODO: Understand why this is not a good fit or is a good fit.
 restore
+
+// 9. Run the following dummy variable regressions and interpret the coefficients:
+// (a) output regressed on a set of indicator variables for each Fuel Type in the data
+encode fuel_type, gen(fuel)
+drop fuel_type
+rename fuel fuel_type
+reg output i.fuel_type // base can be any
+* Nuclear has the most ouput, then coal, and the least is others
+// (b) output regressed on a set of indicator variables for each day of the week (Sun, Mon,
+// Tues, etc.)
+reg output i.day //max on thursday and least on sunday
+
+// (c) output regressed on a set of indicator variables for each week in the data
+// What factors might explain the values of the coefficients you found?
+gen week = week(date)
+output output i.week
 
 
 
