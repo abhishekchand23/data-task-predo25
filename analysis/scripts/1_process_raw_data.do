@@ -211,7 +211,7 @@ reg output i.day //max on thursday and least on sunday
 // (c) output regressed on a set of indicator variables for each week in the data
 // What factors might explain the values of the coefficients you found?
 gen week = week(date)
-output output i.week
+reg output i.week
 
 
 
