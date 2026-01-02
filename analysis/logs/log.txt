@@ -1,0 +1,960 @@
+----------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/log.txt
+  log type:  text
+ opened on:   2 Jan 2026, 14:54:08
+
+. 
+. import delimited "../raw_data/ercot_resource_output.csv", clear
+(encoding automatically selected: ISO-8859-1)
+(5 vars, 3,008,438 obs)
+
+. save "../int_data/ercot_res_out.dta", replace
+file ../int_data/ercot_res_out.dta saved
+
+. 
+. use "../int_data/ercot_res_out", clear
+
+. describe
+
+Contains data from ../int_data/ercot_res_out.dta
+ Observations:     3,008,438                  
+    Variables:             5                  2 Jan 2026 14:54
+----------------------------------------------------------------------------------------
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+----------------------------------------------------------------------------------------
+sced_time_stamp str16   %16s                  
+qse             str6    %9s                   
+resource_name   str17   %17s                  
+telemetered_n~t float   %9.0g                 
+resource_status str8    %9s                   
+----------------------------------------------------------------------------------------
+Sorted by: 
+
+. label data "data for electric reliability council of texas (ercot)"
+
+. 
+. * 1. How many unique values does the variable Resource Name take in the data? the vari
+> able
+. * QSE?
+. codebook resource_name
+
+----------------------------------------------------------------------------------------
+resource_name                                                                (unlabeled)
+----------------------------------------------------------------------------------------
+
+                  Type: String (str17)
+
+         Unique values: 1,121                     Missing "": 0/3,008,438
+
+              Examples: "CHE_CC1_6"
+                        "HHGT_HHOLLOW2"
+                        "NCARBIDE_NCARBIG6"
+                        "SL_SL_G1"
+
+. 
+. // Answer: 1,121 unique values for Resource Name
+. 
+. * 2. What is a QSE? Do a quick online search for this ERCOT acronym. Provide a brief (
+> 1-3
+. * sentences) definition for QSE as used in ERCOT's market for electricity.
+. 
+. // Answer: Qualified scheduling entities (QSEs) submit bids and offers on behalf 
+. // of resource entities (REs) or load serving entities (LSEs) such as 
+. // retail electric providers (REPs). QSEs are able to submit offers to sell and/or 
+. // bids to buy energy in the Day-Ahead Market and the Real-Time Market. The QSE is 
+. // also responsible for submitting a Current Operating Plan for all resources it 
+. // represents and offering or procuring Ancillary Services as needed to serve their 
+. // represented load. QSEs are responsible for settling financially with ERCOT
+. 
+. label variable qse "qualified scheduling entities"
+
+. 
+. 
+. // 3. Find the set of unique QSE/Resource Name pairs. Answer the following questions.
+. 
+. // (a) Is it ever the case that a single QSE is paired to multiple resource names? Wha
+> t might this indicate about the relationship between QSEs and Resource Names? What are
+>  the 10 largest QSEs in terms of the number of unique Resource Names they are paired t
+> o in the data?
+. 
+. gen double timestamp = clock(sced_time_stamp, "MDYhm") 
+
+. format timestamp %tc
+
+. 
+. preserve
+
+. contract qse resource_name // this changes the data instead use unique qse resource_na
+> me
+
+. bysort qse: gen n_distinct = _N
+
+. bysort qse (n_distinct): keep if _n == 1
+(933 observations deleted)
+
+. gsort -n_distinct
+
+. list qse n_distinct in 1/11
+
+     +-------------------+
+     |    qse   n_dist~t |
+     |-------------------|
+  1. | QTENSK        173 |
+  2. |  QLUMN         75 |
+  3. | QNRGTX         50 |
+  4. |  QCALP         44 |
+  5. |  QECNR         40 |
+     |-------------------|
+  6. |   QAEN         34 |
+  7. |  QLCRA         32 |
+  8. |  QCPSE         25 |
+  9. | QTEN23         24 |
+ 10. | QSHEL2         22 |
+     |-------------------|
+ 11. | QTENS7         21 |
+     +-------------------+
+
+. 
+. list if n_distinct <= 1
+
+     +-----------------------------------------------+
+     |    qse       resource_name   _freq   n_dist~t |
+     |-----------------------------------------------|
+131. | QFPL17      CAPRIDG4_BB_PV    3072          1 |
+132. |  QGERD      ELLISSLR_UNIT1    3072          1 |
+133. | QSCURY         CSEC_CSECG1    3072          1 |
+134. | QDUKE5          LV5_UNIT_1    3072          1 |
+135. | QFPL12    BLSUMMIT_BATTERY    3072          1 |
+     |-----------------------------------------------|
+136. |  QGOLD        GWEC_GWEC_G1    3072          1 |
+137. | QIBER1       SHAFFER_UNIT1    3072          1 |
+138. |  QGALT   OBERON_UNIT_1_J02    3072          1 |
+139. | QEONG6       GOLINDA_UNIT1    3072          1 |
+140. | QEDF16      STRATEGC_UNIT1    3072          1 |
+     |-----------------------------------------------|
+141. | QEDF32         SRWE1_UNIT1    3072          1 |
+142. | QEDIS7             OWF_OWF    3072          1 |
+143. | QSUE10      WL_RANCH_UNIT1    3072          1 |
+144. | QEDF29     BCATWIND_WIND_1    3072          1 |
+145. | QGALT1   OBERON_UNIT_1_J01    3072          1 |
+     |-----------------------------------------------|
+146. | QMCADO             MWEC_G1    3072          1 |
+147. | QEDF15        VISION_UNIT1    3072          1 |
+148. | QTEN15      ROUTE_66_WIND1    3072          1 |
+149. | QDUKE3      MESTENO_UNIT_1    3072          1 |
+150. | QECNR6       PAP1_PAP1_J01    3072          1 |
+     |-----------------------------------------------|
+151. | QEDF35         SRWE1_SRWE2    3072          1 |
+152. | QEDI11         WFTANK_ESS1    3072          1 |
+153. | QSTANT             SWEC_G1    3072          1 |
+154. | QNRGDT           SBE_UNIT1    3072          1 |
+155. | QSUEZ8         LASSO_UNIT1    3072          1 |
+     |-----------------------------------------------|
+156. | QSCUR2         CSEC_CSECG2    3072          1 |
+157. | QTURKY            TTWEC_G1    3072          1 |
+158. | QEDF41         ASTRA_UNIT1    3072          1 |
+159. | QGUNSI           GUNMTN_G1    3072          1 |
+160. | QEDF39      PANDA_T1_CC1_2    3072          1 |
+     |-----------------------------------------------|
+161. | QEDE34            TC_TCHP1    3072          1 |
+162. | QM2SQ1          SGSA_BESS1    3072          1 |
+163. | QEDF42      TYLRWIND_UNIT1    3072          1 |
+164. | QEDI10      TURQBESS_BESS1    3072          1 |
+165. | QBRZSC      SCES_UNIT1_J02    3062          1 |
+     |-----------------------------------------------|
+166. | QGALT4        AGUAYO_UNIT1    3072          1 |
+167. | QDUKE7      MARYNEAL_UNIT1    3072          1 |
+168. | QTENS4      VICTORIA_CC1_1    3072          1 |
+169. | QSUE30              RTS_U1    3072          1 |
+170. | QMP2E5    COTPLNS_COTTONPL    3072          1 |
+     |-----------------------------------------------|
+171. |  QGAR5       RIGGINS_UNIT1    3072          1 |
+172. | QSUE47          LON_SOLAR1    3072          1 |
+173. | QDUKE6       RAMBLER_UNIT1    3072          1 |
+174. | QSUE42        MADERO_UNIT2    3072          1 |
+175. | QEDF24     OXY_CC_OXY_CCG1    3072          1 |
+     |-----------------------------------------------|
+176. | QEONG4      BYRDR_ES_BESS1    3072          1 |
+177. | QDIR12       CORAZON_UNIT1    3072          1 |
+178. | QTEN25       CHISMGRD_BES1    3072          1 |
+179. | QECNR7         COTTON_PAP2    3072          1 |
+180. | QEONG8      CRWN_SLR_UNIT1    3072          1 |
+     |-----------------------------------------------|
+181. | QEONG7        FILESSLR_PV1    3072          1 |
+182. | QGAR11      LMESASLR_UNIT1    3072          1 |
+183. | QAVAN3      KARAKAW2_UNIT3    3072          1 |
+184. | QECNR4        ANACACHO_ANA    3072          1 |
+185. | QEDF17        IMPACT_UNIT1    3072          1 |
+     |-----------------------------------------------|
+186. | QSUE41        MADERO_UNIT1    3072          1 |
+187. | QBEEPO         HRBESS_BESS    3072          1 |
+188. | QEDF27     SSPURTWO_WIND_1    3072          1 |
+189. | QEONG3      WCOLLDG_BSS_U1    3072          1 |
+190. | QEDIS5        ELB_ELBCREEK    3072          1 |
+     |-----------------------------------------------|
+191. | QMITS2          JUNO_UNIT1    3072          1 |
+192. | QDUKE1      LAPETUS_UNIT_1    3072          1 |
+193. | QSUE23        GAMBIT_BESS1    3072          1 |
+194. | QSUE11       S_HILLS_UNIT1    3072          1 |
+     +-----------------------------------------------+
+
+. summarize n_distinct
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+  n_distinct |        194    5.809278    14.99705          1        173
+
+. tab n_distinct
+
+ n_distinct |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |         64       32.99       32.99
+          2 |         50       25.77       58.76
+          3 |         21       10.82       69.59
+          4 |         17        8.76       78.35
+          5 |          8        4.12       82.47
+          6 |          4        2.06       84.54
+          7 |          2        1.03       85.57
+          8 |          4        2.06       87.63
+         10 |          2        1.03       88.66
+         11 |          1        0.52       89.18
+         12 |          1        0.52       89.69
+         14 |          4        2.06       91.75
+         15 |          1        0.52       92.27
+         16 |          2        1.03       93.30
+         17 |          1        0.52       93.81
+         19 |          1        0.52       94.33
+         21 |          1        0.52       94.85
+         22 |          1        0.52       95.36
+         24 |          1        0.52       95.88
+         25 |          1        0.52       96.39
+         32 |          1        0.52       96.91
+         34 |          1        0.52       97.42
+         40 |          1        0.52       97.94
+         44 |          1        0.52       98.45
+         50 |          1        0.52       98.97
+         75 |          1        0.52       99.48
+        173 |          1        0.52      100.00
+------------+-----------------------------------
+      Total |        194      100.00
+
+. // histogram n_distinct
+. restore
+
+. 
+. // The QSE's have more than one client for which they place the bids and makes offers 
+> to.
+. 
+. // (b) Is it ever the case that a single Resource Name is paired to more than one QSE 
+> in the data? For how many Resource Names is this true for? Why might a single Resource
+. // Name pair with multiple QSEs in the data? Hint: Look at how pairs change over time
+. * there are 6 resources that have more than 1 qse
+. preserve 
+
+. contract resource_name qse
+
+. bysort resource_name: gen n_distinct = _N
+
+. order resource_name
+
+. list if n_distinct>1
+
+      +---------------------------------------------+
+      |   resource_name      qse   _freq   n_dist~t |
+      |---------------------------------------------|
+ 664. |   MUSTNGCK_BES1   QENE10    2784          2 |
+ 665. |   MUSTNGCK_BES1   QENEL5     288          2 |
+ 666. | MUSTNGCK_SOLAR1   QENE10    2784          2 |
+ 667. | MUSTNGCK_SOLAR1   QENEL5     288          2 |
+ 668. | MUSTNGCK_SOLAR2   QENE10    2784          2 |
+      |---------------------------------------------|
+ 669. | MUSTNGCK_SOLAR2   QENEL5     288          2 |
+ 921. |  STAM_SLR_BESS1   QENE12     768          2 |
+ 922. |  STAM_SLR_BESS1   QENEL5    2304          2 |
+ 923. | STAM_SLR_SOLAR1   QENE12     768          2 |
+ 924. | STAM_SLR_SOLAR1   QENEL5    2304          2 |
+      |---------------------------------------------|
+ 925. | STAM_SLR_SOLAR2   QENE12     768          2 |
+ 926. | STAM_SLR_SOLAR2   QENEL5    2304          2 |
+      +---------------------------------------------+
+
+. restore 
+
+. 
+. // or use below but you can't see here which qses
+. // quietly unique qse, by(resource_name) gen(num_qse)
+. // tab num_qse
+. // browse if num_qse > 1 & !missing(num_qse)
+. 
+. save "../int_data/ercot_res_out.dta", replace
+file ../int_data/ercot_res_out.dta saved
+
+. // 4. Now turn to resource type.csv
+. // (a) How many unique, non-missing values does Resource Type take? Can you find defin
+> itions for them? (No need to define all of them, just attempt a few)
+. import delimited "../raw_data/ercot_resource_types.csv", clear varnames(1)
+(encoding automatically selected: ISO-8859-1)
+(2 vars, 1,121 obs)
+
+. codebook resource_type // levelsof also can be used but you will have to count yoursel
+> f
+
+----------------------------------------------------------------------------------------
+resource_type                                                                (unlabeled)
+----------------------------------------------------------------------------------------
+
+                  Type: String (str6)
+
+         Unique values: 15                        Missing "": 4/1,121
+
+              Examples: "CLLIG"
+                        "PVGR"
+                        "SCLE90"
+                        "WIND"
+
+. 
+. * there are 15 unique values resource type takes. As I 
+. * CLLIG Controllable Load Resource (CLR): Large industrial/commercial users who agree 
+> to lower their demand when the grid needs power.
+. 
+. 
+. // (b) Are there any empty strings in the resource type column? Which resource names a
+> re missing their type? Can you guess what the missing values should be? Fill in the mi
+> ssing values with your guesses (you will carry your filled in guesses for the remainde
+> r of the data task).
+. 
+. *Yes there areresource_name
+. // browse if missing(resource_type)
+. 
+. /*the below resource names are missing their type
+> GALLOWAY_SOLAR1
+> ROSELAND_SOLAR3
+> SSPURTWO_WIND_1
+> SWEETWN2_WND24
+> */
+. 
+. // browse if strpos(resource_name,"GALLOWAY"): use or operator after if instead of cre
+> ating two lines of code
+. replace resource_type = "PVGR" if resource_name == "GALLOWAY_SOLAR1"
+(1 real change made)
+
+. replace resource_type = "PVGR" if resource_name == "ROSELAND_SOLAR3"
+(1 real change made)
+
+. // browse if strpos(resource_name,"WIND")
+. replace resource_type = "WIND" if resource_name == "SSPURTWO_WIND_1"
+(1 real change made)
+
+. replace resource_type = "WIND" if resource_name == "SWEETWN2_WND24"
+(1 real change made)
+
+. 
+. // 5. Based on the following definitions, use the resource type column to make a "Fuel
+>  Type" column. After doing so, merge Fuel Type and Resource Type onto ercot resource o
+> utput.csv using Resource Name (you should end up with 6 unique values of Fuel Type).
+. // • DSL - Other
+. // • SCGT90 - Natural Gas
+. // • WIND - Wind
+. // • PWRSTR - Other
+. // • HYDRO - Other
+. // • CCGT90 - Natural Gas
+. // • PVGR - Solar
+. // • SCLE90 - Natural Gas
+. // • GSREH - Natural Gas
+. // • CCLE90 - Natural Gas
+. // • CLLIG - Coal
+. // • GSSUP - Natural Gas
+. // • NUC - Nuclear
+. // • GSNONR - Natural Gas
+. // • RENEW - Other
+. 
+. gen fuel_type = ""
+(1,121 missing values generated)
+
+. 
+. replace fuel_type = "Other" ///
+>                                  if inlist(resource_type, "DSL", "PWRSTR", "HYDRO", "R
+> ENEW")
+variable fuel_type was str1 now str5
+(141 real changes made)
+
+. replace fuel_type = "Natural Gas" ///
+>                                  if inlist(resource_type, "SCGT90", "CCGT90", "SCLE90"
+> ,"GSREH", "GSSUP", "GSNONR", "CCLE90")
+variable fuel_type was str5 now str11
+(434 real changes made)
+
+. replace fuel_type = "Wind".   if resource_type == "WIND"
+(365 real changes made)
+
+. replace fuel_type = "Solar"   if resource_type == "PVGR"
+(147 real changes made)
+
+. replace fuel_type = "Coal"    if resource_type == "CLLIG"
+(26 real changes made)
+
+. replace fuel_type = "Nuclear" if resource_type == "NUC"
+(8 real changes made)
+
+. save "../int_data/ercot_res_type", replace
+file ../int_data/ercot_res_type.dta saved
+
+. 
+. use ../int_data/ercot_res_out, clear
+(data for electric reliability council of texas (ercot))
+
+. merge m:1 resource_name using ../int_data/ercot_res_type 
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                         3,008,438  (_merge==3)
+    -----------------------------------------
+
+. 
+. // 6. Plot the following:
+. // (a) output summed by day
+. // (b) output summed by hour-of-day (hours 0-23)
+. // (c) output summed by hour-of-day and by Fuel Type (the variable you defined in 5.)
+. // Discuss the patterns you see in each plot.
+. 
+. rename telemetered_net_output output
+
+. label variable output "Telemetered net output"
+
+. 
+. gen date = dofc(timestamp)
+
+. format date %td
+
+. 
+. preserve
+
+. collapse (sum) output, by(date)
+
+. tset date
+
+Time variable: date, 22jan2023 to 22feb2023
+        Delta: 1 day
+
+. quietly tsline output
+
+. graph export ../results/figures/daily_output.png, replace
+file
+    /Users/kismet/economics/predoc_datatask25/analysis/scripts/../results/figures/dail
+    > y_output.png saved as PNG format
+
+. restore
+
+. 
+. gen day = dow(date)
+
+. label define dowlbl 0 "Sunday" 1 "Monday" 2 "Tuesday" 3 "Wednesday" 4 "Thursday" 5 "Fr
+> iday" 6 "Saturday"
+
+. label values day dowlbl
+
+.  
+. quietly graph bar (sum) output, over(day)
+
+. graph export ../results/figures/day_out.png, replace
+file
+    /Users/kismet/economics/predoc_datatask25/analysis/scripts/../results/figures/day_
+    > out.png saved as PNG format
+
+. 
+. 
+. gen hour = hh(timestamp)
+
+. 
+. quietly graph bar (sum) output, over(hour) //this is a bad graph but line also does no
+> t show the 0 value which might show that there is huge difference in the output across
+>  hours as the reference value of 0 is not present in the line graph
+
+. preserve
+
+. collapse (sum) output, by(hour)
+
+. twoway line output hour
+
+. graph export ../results/figures/hourly_output.png, replace
+file
+    /Users/kismet/economics/predoc_datatask25/analysis/scripts/../results/figures/hour
+    > ly_output.png saved as PNG format
+
+. restore
+
+. 
+. 
+. 
+. quietly graph bar (sum) output, over(hour) over(fuel_type) // this is worst dnu
+
+. 
+. preserve 
+
+. collapse (sum) output, by(hour fuel_type)
+
+. encode fuel_type, gen(fuel_type_num)
+
+. drop fuel_type
+
+. reshape wide output, i(hour) j(fuel_type_num)
+(j = 1 2 3 4 5 6)
+
+Data                               Long   ->   Wide
+-----------------------------------------------------------------------------
+Number of observations              144   ->   24          
+Number of variables                   3   ->   7           
+j variable (6 values)     fuel_type_num   ->   (dropped)
+xij variables:
+                                 output   ->   output1 output2 ... output6
+-----------------------------------------------------------------------------
+
+. label var output1 "Coal"
+
+. label var output2 "Natural Gas"
+
+. label var output3 "Nuclear"
+
+. label var output4 "Other"
+
+. label var output5 "Solar"
+
+. label var output6 "Wind"
+
+. twoway line output1 output2 output3 output4 output5 output6 hour //but there are ways 
+> to make it look more beautiful
+
+. 
+. twoway (connected output1 hour, sort msymbol(O) msize(small)) (connected output2 hour,
+>  sort msymbol(O) msize(small)) (connected output3 hour, sort msymbol(O) msize(small)) 
+> (connected output4 hour, sort msymbol(O) msize(small)) (connected output5 hour, sort m
+> symbol(O) msize(small)) (connected output6 hour, sort msymbol(O) msize(small)), xtitle
+> (Hour) title(Electricity Output by Fuel Type and Time of Day) ytitle(Electricity Outpu
+> t)
+
+. 
+. graph export ../results/figures/hourly_output_by_type.png, replace
+file
+    /Users/kismet/economics/predoc_datatask25/analysis/scripts/../results/figures/hour
+    > ly_output_by_type.png saved as PNG format
+
+. restore
+
+. 
+. 
+. 
+. // the day output gradually increases from sunday to wednesday and then gradually decr
+> eases from Thursday to Saturday
+. 
+. //the hourly output starts increasing at 4 am and then peaks at 8 am then gradually fa
+> lls till 3pm and starts to increase and then peaks at 7pm and starts falling gradually
+>  till 3am.
+. 
+. // The hourly patterns we observe is due to fluctuations in the output of Natural gas,
+>  coal, wind, solar and others. Coal, Natural gas and other mimick the hourly output pa
+> ttern.
+. 
+. 
+. // 7. Looking at the plot from 6.(a), does this data look stationary? Using the data s
+> ummed at the daily level, test for a unit root and interpret the result. Now calculate
+>  its first difference and plot it. Does it look stationary?
+. 
+. preserve
+
+. collapse (sum) output, by(date)
+
+. tsset date
+
+Time variable: date, 22jan2023 to 22feb2023
+        Delta: 1 day
+
+. quietly tsline output
+
+. *No looking at the plot the series does not look stationary.
+. dfuller output //we fail to reject that series is non-stationary
+
+Dickey–Fuller test for unit root           Number of obs  = 31
+Variable: output                           Number of lags =  0
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -2.138       -3.709       -2.983       -2.623
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.2296.
+
+. pperron output // er fail to reject random walk
+
+Phillips–Perron test for unit root        Number of obs   = 31
+Variable: output                          Newey–West lags =  3
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(rho)         -11.037      -17.608      -12.692      -10.320
+ Z(t)            -2.443       -3.709       -2.983       -2.623
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.1299.
+
+. dfgls output // not sure how to interpret the results 
+
+DF-GLS test for unit root                   Number of obs = 22
+Variable: output
+Lag selection: Schwert criterion            Maximum lag   =  9
+
+                             -------- Critical value ---------
+ [lags]      DF-GLS tau           1%           5%          10%
+--------------------------------------------------------------
+      9          -2.480       -3.770       -2.909       -2.432
+      8          -2.213       -3.770       -2.835       -2.414
+      7          -2.495       -3.770       -2.829       -2.447
+      6          -2.307       -3.770       -2.876       -2.519
+      5          -2.586       -3.770       -2.962       -2.620
+      4          -2.983       -3.770       -3.075       -2.738
+      3          -3.522       -3.770       -3.199       -2.861
+      2          -3.709       -3.770       -3.322       -2.977
+      1          -4.638       -3.770       -3.428       -3.076
+--------------------------------------------------------------
+Opt lag (Ng–Perron seq t) = 1 with RMSE = 173392
+Min SIC  =  24.40762 at lag 1 with RMSE = 173392
+Min MAIC =  26.43906 at lag 1 with RMSE = 173392
+
+. 
+. generate fdoutput = D.output
+(1 missing value generated)
+
+. tsline fdoutput
+
+. graph export ../results/figures/fdoutput.png, replace
+file
+    /Users/kismet/economics/predoc_datatask25/analysis/scripts/../results/figures/fdou
+    > tput.png saved as PNG format
+
+. dfuller fdoutput
+
+Dickey–Fuller test for unit root           Number of obs  = 30
+Variable: fdoutput                         Number of lags =  0
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -3.635       -3.716       -2.986       -2.624
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.0051.
+
+. *no this also does not look stationary
+. // wrong the dfuller test rejects that the series is a random walk
+. restore
+
+. 
+. // 8. Now sum output at the hourly level (day-hour, not hour-of-day). Fit an AR(3) mod
+> el on electricity output. Do you believe an AR model is a good fit? Why or why not?
+. preserve
+
+. collapse (sum) output, by(date hour)
+
+. gen double dayhour = cofd(date) +  (hour * 60 * 60 * 1000) //clock of the date and con
+> vert the hour to millisecond
+
+. format dayhour %tc
+
+. tsset dayhour, delta(1 hour) // default delta is 1 millisecond, need hour here
+
+Time variable: dayhour, 22jan2023 00:00:00 to 22feb2023 23:00:00
+        Delta: 1 hour
+
+. quietly tsline output, xtitle(Day - Hour) ytitle(Output) title(Day Hour Output) xlabel
+> (,angle(45) labsize(small)) tmtick(##24)
+
+. graph export ../results/figures/dhoutput.png, replace
+file
+    /Users/kismet/economics/predoc_datatask25/analysis/scripts/../results/figures/dhou
+    > tput.png saved as PNG format
+
+. pac output
+
+. graph export ../results/figures/pac_output_daily_hour.pdf, as(pdf) name(Graph) replace
+file
+    /Users/kismet/economics/predoc_datatask25/analysis/scripts/../results/figures/pac_
+    > output_daily_hour.pdf saved as PDF format
+
+. 
+. eststo clear
+
+. eststo: regress output L(1/3).output, vce(robust)
+
+Linear regression                               Number of obs     =        765
+                                                F(3, 761)         =   27425.91
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.9899
+                                                Root MSE          =     2574.4
+
+------------------------------------------------------------------------------
+             |               Robust
+      output | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      output |
+         L1. |   2.216206   .0425509    52.08   0.000     2.132675    2.299737
+         L2. |  -1.749322   .0749042   -23.35   0.000    -1.896366   -1.602279
+         L3. |      .5135   .0365133    14.06   0.000     .4418213    .5851788
+             |
+       _cons |   3643.878   666.2324     5.47   0.000     2336.006    4951.749
+------------------------------------------------------------------------------
+(est1 stored)
+
+. esttab using "../results/tables/predoc_8_ar3.tex", nonotes se ar2 tex replace label va
+> rwidth(40) obslast  star(* 0.10 ** 0.05 *** 0.01)
+(output written to ../results/tables/predoc_8_ar3.tex)
+
+. 
+. eststo clear
+
+. eststo: arima output, arima(3,0,0) sarima(1,0,0,24) vce(robust)
+
+(setting optimization to BHHH)
+Iteration 0:  Log pseudolikelihood = -7158.3417  
+Iteration 1:  Log pseudolikelihood = -6961.8455  
+Iteration 2:  Log pseudolikelihood = -6914.1928  
+Iteration 3:  Log pseudolikelihood = -6910.6501  
+Iteration 4:  Log pseudolikelihood = -6910.2093  
+(switching optimization to BFGS)
+BFGS stepping has contracted, resetting BFGS Hessian (0)
+Iteration 5:  Log pseudolikelihood = -6910.1753  
+Iteration 6:  Log pseudolikelihood = -6910.1751  (backed up)
+Iteration 7:  Log pseudolikelihood = -6910.1751  (backed up)
+Iteration 8:  Log pseudolikelihood = -6910.1727  (backed up)
+Iteration 9:  Log pseudolikelihood = -6910.1696  (backed up)
+Iteration 10: Log pseudolikelihood = -6910.1666  
+Iteration 11: Log pseudolikelihood = -6910.1666  
+Iteration 12: Log pseudolikelihood = -6910.1662  
+Iteration 13: Log pseudolikelihood = -6910.1654  
+Iteration 14: Log pseudolikelihood = -6910.1653  
+(switching optimization to BHHH)
+Iteration 15: Log pseudolikelihood = -6910.1653  
+Iteration 16: Log pseudolikelihood = -6910.1632  
+Iteration 17: Log pseudolikelihood = -6910.1631  
+Iteration 18: Log pseudolikelihood = -6910.1631  
+Iteration 19: Log pseudolikelihood = -6910.1631  
+(switching optimization to BFGS)
+BFGS stepping has contracted, resetting BFGS Hessian (1)
+Iteration 20: Log pseudolikelihood = -6910.1631  
+Iteration 21: Log pseudolikelihood = -6910.1631  (backed up)
+Iteration 22: Log pseudolikelihood = -6910.1631  
+
+ARIMA regression
+
+Sample: 22jan2023 00:00:00 thru 22feb2023 23:00:00 
+                                                Number of obs     =        768
+                                                Wald chi2(4)      =   52789.03
+Log pseudolikelihood = -6910.163                Prob > chi2       =     0.0000
+
+------------------------------------------------------------------------------
+             |             Semirobust
+      output | Coefficient  std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+output       |
+       _cons |   182940.5   9356.908    19.55   0.000     164601.3    201279.7
+-------------+----------------------------------------------------------------
+ARMA         |
+          ar |
+         L1. |   1.954732   .0529639    36.91   0.000     1.850924    2.058539
+         L2. |  -1.217835   .0983842   -12.38   0.000    -1.410665   -1.025006
+         L3. |   .2408161   .0493561     4.88   0.000     .1440798    .3375523
+-------------+----------------------------------------------------------------
+ARMA24       |
+          ar |
+         L1. |   .6972534   .0346852    20.10   0.000     .6292717    .7652351
+-------------+----------------------------------------------------------------
+      /sigma |   1928.621   65.90865    29.26   0.000     1799.443      2057.8
+------------------------------------------------------------------------------
+Note: The test of the variance against zero is one sided, and the two-sided
+      confidence interval is truncated at zero.
+(est1 stored)
+
+. esttab using "../results/tables/predoc_8_sarima.tex", nonotes se ar2 tex replace label
+>  varwidth(40) obslast  star(* 0.10 ** 0.05 *** 0.01)
+(file ../results/tables/predoc_8_sarima.tex not found)
+(output written to ../results/tables/predoc_8_sarima.tex)
+
+. 
+. restore
+
+. 
+. // 9. Run the following dummy variable regressions and interpret the coefficients:
+. // (a) output regressed on a set of indicator variables for each Fuel Type in the data
+. encode fuel_type, gen(fuel)
+
+. drop fuel_type
+
+. rename fuel fuel_type
+
+. reg output i.fuel_type // base can be any
+
+      Source |       SS           df       MS      Number of obs   = 3,008,438
+-------------+----------------------------------   F(5, 3008432)   >  99999.00
+       Model |  1.2732e+10         5  2.5464e+09   Prob > F        =    0.0000
+    Residual |  3.5473e+10 3,008,432  11791.3455   R-squared       =    0.2641
+-------------+----------------------------------   Adj R-squared   =    0.2641
+       Total |  4.8205e+10 3,008,437   16023.424   Root MSE        =    108.59
+
+------------------------------------------------------------------------------
+      output | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   fuel_type |
+Natural Gas  |   -161.332   .4007597  -402.57   0.000    -162.1175   -160.5465
+    Nuclear  |   416.1096   .7921096   525.32   0.000     414.5571    417.6621
+      Other  |  -221.9107   .4187751  -529.90   0.000    -222.7315     -221.09
+      Solar  |  -209.2367   .4171109  -501.63   0.000    -210.0542   -208.4192
+       Wind  |  -183.0228   .3976965  -460.21   0.000    -183.8022   -182.2433
+             |
+       _cons |   223.5417    .384248   581.76   0.000     222.7886    224.2948
+------------------------------------------------------------------------------
+
+. * Nuclear has the most ouput, then coal, and the least is others // coefficients give 
+> the mean of each type
+. // (b) output regressed on a set of indicator variables for each day of the week (Sun,
+>  Mon,
+. // Tues, etc.)
+. reg output i.day //max on thursday and least on sunday
+
+      Source |       SS           df       MS      Number of obs   = 3,008,438
+-------------+----------------------------------   F(6, 3008431)   =    135.55
+       Model |  13028340.9         6  2171390.16   Prob > F        =    0.0000
+    Residual |  4.8192e+10 3,008,431  16019.1254   R-squared       =    0.0003
+-------------+----------------------------------   Adj R-squared   =    0.0003
+       Total |  4.8205e+10 3,008,437   16023.424   Root MSE        =    126.57
+
+------------------------------------------------------------------------------
+      output | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         day |
+     Monday  |   3.489654   .2612428    13.36   0.000     2.977627    4.001681
+    Tuesday  |   4.713179   .2612428    18.04   0.000     4.201153    5.225206
+  Wednesday  |   5.553867   .2610444    21.28   0.000     5.042229    6.065505
+   Thursday  |   6.239293   .2769131    22.53   0.000     5.696553    6.782033
+     Friday  |    6.23065   .2769131    22.50   0.000      5.68791     6.77339
+   Saturday  |   3.123567   .2769131    11.28   0.000     2.580827    3.666307
+             |
+       _cons |   43.33166   .1847266   234.57   0.000      42.9696    43.69372
+------------------------------------------------------------------------------
+
+. 
+. // (c) output regressed on a set of indicator variables for each week in the data
+. // What factors might explain the values of the coefficients you found?
+. gen week = week(date)
+
+. reg output i.week
+
+      Source |       SS           df       MS      Number of obs   = 3,008,438
+-------------+----------------------------------   F(4, 3008433)   =    698.41
+       Model |  44722441.6         4  11180610.4   Prob > F        =    0.0000
+    Residual |  4.8161e+10 3,008,433  16008.5797   R-squared       =    0.0009
+-------------+----------------------------------   Adj R-squared   =    0.0009
+       Total |  4.8205e+10 3,008,437   16023.424   Root MSE        =    126.53
+
+------------------------------------------------------------------------------
+      output | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        week |
+          5  |   6.658428   .2212547    30.09   0.000     6.224777    7.092079
+          6  |  -3.196901   .2208938   -14.47   0.000    -3.629845   -2.763957
+          7  |   -2.15712   .2208938    -9.77   0.000    -2.590064   -1.724176
+          8  |   -3.95426   .2587495   -15.28   0.000      -4.4614    -3.44712
+             |
+       _cons |    47.6515   .1567942   303.91   0.000     47.34419    47.95881
+------------------------------------------------------------------------------
+
+. 
+. 
+. foreach var_to_ind in fuel_type day week {
+  2.         eststo clear
+  3.         eststo: regress output I.`var_to_ind', r
+  4.         esttab using "../results/tables/predoc_9_`var_to_ind'.tex", nonotes se ar2 
+> tex replace label varwidth(40) obslast nocon star(* 0.10 ** 0.05 *** 0.01)
+  5. }
+
+Linear regression                               Number of obs     =  3,008,438
+                                                F(5, 3008432)     >   99999.00
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2641
+                                                Root MSE          =     108.59
+
+------------------------------------------------------------------------------
+             |               Robust
+      output | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   fuel_type |
+Natural Gas  |   -161.332   .8590846  -187.80   0.000    -163.0158   -159.6482
+    Nuclear  |   416.1096    2.47958   167.81   0.000     411.2497    420.9695
+      Other  |  -221.9107    .841569  -263.69   0.000    -223.5602   -220.2613
+      Solar  |  -209.2367   .8430131  -248.20   0.000     -210.889   -207.5844
+       Wind  |  -183.0228   .8425943  -217.21   0.000    -184.6742   -181.3713
+             |
+       _cons |   223.5417   .8414818   265.65   0.000     221.8924     225.191
+------------------------------------------------------------------------------
+(est1 stored)
+(output written to ../results/tables/predoc_9_fuel_type.tex)
+
+Linear regression                               Number of obs     =  3,008,438
+                                                F(6, 3008431)     =     140.38
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0003
+                                                Root MSE          =     126.57
+
+------------------------------------------------------------------------------
+             |               Robust
+      output | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         day |
+     Monday  |   3.489654   .2504442    13.93   0.000     2.998792    3.980516
+    Tuesday  |   4.713179   .2539464    18.56   0.000     4.215453    5.210905
+  Wednesday  |   5.553867   .2591318    21.43   0.000     5.045978    6.061757
+   Thursday  |   6.239293   .2805911    22.24   0.000     5.689344    6.789242
+     Friday  |    6.23065   .2761294    22.56   0.000     5.689446    6.771854
+   Saturday  |   3.123567   .2657774    11.75   0.000     2.602653    3.644482
+             |
+       _cons |   43.33166   .1754617   246.96   0.000     42.98776    43.67556
+------------------------------------------------------------------------------
+(est1 stored)
+(output written to ../results/tables/predoc_9_day.tex)
+
+Linear regression                               Number of obs     =  3,008,438
+                                                F(4, 3008433)     =     582.42
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.0009
+                                                Root MSE          =     126.53
+
+------------------------------------------------------------------------------
+             |               Robust
+      output | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+        week |
+          5  |   6.658428   .2403265    27.71   0.000     6.187397     7.12946
+          6  |  -3.196901   .2136894   -14.96   0.000    -3.615724   -2.778077
+          7  |   -2.15712   .2126164   -10.15   0.000    -2.573841     -1.7404
+          8  |   -3.95426   .2389167   -16.55   0.000    -4.422528   -3.485992
+             |
+       _cons |    47.6515   .1550788   307.27   0.000     47.34755    47.95545
+------------------------------------------------------------------------------
+(est1 stored)
+(output written to ../results/tables/predoc_9_week.tex)
+
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/log.txt
+  log type:  text
+ closed on:   2 Jan 2026, 14:55:17
+----------------------------------------------------------------------------------------
