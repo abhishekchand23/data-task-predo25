@@ -1,0 +1,69 @@
+----------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
+> exc_log.txt
+  log type:  text
+ opened on:   3 Jan 2026, 11:57:35
+
+. 
+. * import raw data
+. use ../raw_data/data-task-2025-ozone.dta, clear
+
+. 
+. 
+. * change variables that 
+. gen date1 = date(date, "MDY")
+
+. format date1 %td
+
+. drop date
+
+. rename date1 date 
+
+. 
+. save ../data/ozone, replace
+file ../data/ozone.dta saved
+
+. 
+. use ../raw_data/data-task-2025-pm, clear
+
+. 
+. destring county_code, replace
+county_code: all characters numeric; replaced as int
+
+. 
+. save ../data/pm, replace
+file ../data/pm.dta saved
+
+. 
+. use ../data/ozone
+
+. 
+. merge 1:1 siteid date county_code using ../data/pm
+
+    Result                      Number of obs
+    -----------------------------------------
+    Not matched                             0
+    Matched                            33,877  (_merge==3)
+    -----------------------------------------
+
+. 
+. drop _merge
+
+. 
+. save ../data/dfmerged.dta, replace
+(file ../data/dfmerged.dta not found)
+file ../data/dfmerged.dta saved
+
+. 
+. use ../data/dfmerged
+
+. 
+. 
+. log close
+      name:  <unnamed>
+       log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
+> exc_log.txt
+  log type:  text
+ closed on:   3 Jan 2026, 11:57:35
+----------------------------------------------------------------------------------------
