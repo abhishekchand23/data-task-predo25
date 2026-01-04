@@ -3,7 +3,7 @@
        log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
 > exc_log.txt
   log type:  text
- opened on:   3 Jan 2026, 11:57:35
+ opened on:   4 Jan 2026, 06:52:34
 
 . 
 . * import raw data
@@ -39,6 +39,7 @@ file ../data/pm.dta saved
 . use ../data/ozone
 
 . 
+. * 1. 
 . merge 1:1 siteid date county_code using ../data/pm
 
     Result                      Number of obs
@@ -52,18 +53,52 @@ file ../data/pm.dta saved
 
 . 
 . save ../data/dfmerged.dta, replace
-(file ../data/dfmerged.dta not found)
 file ../data/dfmerged.dta saved
 
 . 
 . use ../data/dfmerged
 
 . 
+. * 2. Produce a table with the mean, median, minimum, maximum, and standard deviation f
+> or ozone, PM 2.5, and AQI for the entire sample.
 . 
+. tabstat ozone_value pm25_value aqi, ///
+>     statistics(mean median min max sd) ///
+>     columns(statistics) format(%9.3f)
+
+    Variable |      Mean       p50       Min       Max        SD
+-------------+--------------------------------------------------
+ ozone_value |     0.043     0.041     0.000     0.139     0.015
+  pm25_value |     7.533     6.350    -2.800   154.400     5.793
+         aqi |    36.693    35.500     0.000   230.000    19.587
+----------------------------------------------------------------
+
+.         
+. * 3. Produce a table with the same statistics for just ozone, but split the sample by 
+> the source variable(AQS vs. AirNow). In other words, your table should report the mean
+> , min, etc., for the portion of the data that comes for AQS and those same numbers for
+>  the data coming from AirNow. Also include the number of observations for each group.
+. 
+. tabstat ozone_value, by(ozone_source) ///
+>     statistics(n mean median min max sd) ///
+>     columns(statistics) 
+
+Summary for variables: ozone_value
+Group variable: ozone_source (Source)
+
+ozone_source |         N      Mean       p50       Min       Max        SD
+-------------+------------------------------------------------------------
+         AQS |     30021    .04434      .042         0      .139  .0145192
+      AirNow |      3856  .0333019      .032      .003      .083  .0103021
+-------------+------------------------------------------------------------
+       Total |     33877  .0430836      .041         0      .139   .014532
+--------------------------------------------------------------------------
+
+.         
 . log close
       name:  <unnamed>
        log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
 > exc_log.txt
   log type:  text
- closed on:   3 Jan 2026, 11:57:35
+ closed on:   4 Jan 2026, 06:52:34
 ----------------------------------------------------------------------------------------
