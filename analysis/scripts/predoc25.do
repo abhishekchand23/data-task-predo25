@@ -56,5 +56,24 @@ tabstat ozone_value, by(ozone_source) ///
     statistics(n mean median min max sd) ///
     columns(statistics) 
 
+*4. .....
+// t test between the mean, same variance
+
+*5. Create a county-day dataset to proceed with the analysis. All subsequent questions will use this new dataset. The data set should contain the three pollution variables, mortality, the county name and code, the date, and the CBSA name and code (one county is always assigned the same CBSA). How did you reconcile different pollution readings for different monitors within the county?
+collapse (mean) aqi ozone_value pm25_value mortality, by(date county_code county_name cbsaname cbsacode)
+
+
+*6 How many counties are missing days?
+sort county_code date
+by county_code: gen gap = date - date[_n-1]
+levelsof county_name if gap > 1 & !missing(gap), local(counties_with_gap)
+
+unique county_name if gap > 1 & !missing(gap)
+
+/*
+foreach county of local counties_with_gap{
+	display "----`county'----"
+}
+*/
 
 log close

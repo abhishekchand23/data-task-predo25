@@ -3,7 +3,7 @@
        log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
 > exc_log.txt
   log type:  text
- opened on:   4 Jan 2026, 06:52:34
+ opened on:   4 Jan 2026, 08:58:27
 
 . 
 . * import raw data
@@ -94,11 +94,49 @@ ozone_source |         N      Mean       p50       Min       Max        SD
        Total |     33877  .0430836      .041         0      .139   .014532
 --------------------------------------------------------------------------
 
-.         
+. 
+. *4. .....
+. // t test between the mean, same variance
+. 
+. *5. Create a county-day dataset to proceed with the analysis. All subsequent questions
+>  will use this new dataset. The data set should contain the three pollution variables,
+>  mortality, the county name and code, the date, and the CBSA name and code (one county
+>  is always assigned the same CBSA). How did you reconcile different pollution readings
+>  for different monitors within the county?
+. collapse (mean) aqi ozone_value pm25_value mortality, by(date county_code county_name 
+> cbsaname cbsacode)
+
+. 
+. 
+. *6 How many counties are missing days?
+. sort county_code date
+
+. by county_code: gen gap = date - date[_n-1]
+(44 missing values generated)
+
+. levelsof county_name if gap > 1 & !missing(gap), local(counties_with_gap)
+`"Alameda"' `"Butte"' `"Calaveras"' `"Colusa"' `"Contra Costa"' `"Glenn"' `"Humboldt"' `
+> "Imperial"' `"Kings"' `"Lake"' `"Madera"' `"Marin"' `"Mariposa"' `"Merced"' `"Nevada"'
+>  `"Orange"' `"San Benito"' `"San Francisco"' `"San Joaquin"' `"San Luis Obispo"' `"San
+>  Mateo"' `"Santa Clara"' `"Santa Cruz"' `"Shasta"' `"Siskiyou"' `"Solano"' `"Sonoma"' 
+> `"Stanislaus"' `"Sutter"' `"Tehama"' `"Yolo"'
+
+. 
+. unique county_name if gap > 1 & !missing(gap)
+Number of unique values of county_name is  31
+Number of records is  498
+
+. 
+. /*
+> foreach county of local counties_with_gap{
+>         display "----`county'----"
+> }
+> */
+. 
 . log close
       name:  <unnamed>
        log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
 > exc_log.txt
   log type:  text
- closed on:   4 Jan 2026, 06:52:34
+ closed on:   4 Jan 2026, 08:58:27
 ----------------------------------------------------------------------------------------
