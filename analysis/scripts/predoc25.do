@@ -42,7 +42,7 @@ drop _merge
 
 save ../data/dfmerged.dta, replace
 
-use ../data/dfmerged
+use ../data/dfmerged, clear
 
 * 2. Produce a table with the mean, median, minimum, maximum, and standard deviation for ozone, PM 2.5, and AQI for the entire sample.
 
@@ -66,14 +66,30 @@ collapse (mean) aqi ozone_value pm25_value mortality, by(date county_code county
 *6 How many counties are missing days?
 sort county_code date
 by county_code: gen gap = date - date[_n-1]
-levelsof county_name if gap > 1 & !missing(gap), local(counties_with_gap)
+quietly levelsof county_name if gap > 1 & !missing(gap), local(counties_with_gap)
 
 unique county_name if gap > 1 & !missing(gap)
 
-/*
+
 foreach county of local counties_with_gap{
 	display "----`county'----"
 }
-*/
+
+******************************************************
+* Section 2
+******************************************************
+
+* 1. Produce a plot showing the distributions of ozone and PM 2.5. The distributions should be separate lines, sets of dots, bars, etc, but on the same set of axis. Choose an appropriate type of graph to complete this task and make your graph easy to digest. Hint: Pay attention to the scale of the variables. Can we preserve the distribution while standardizing the scales?
+summarize ozone_value
+gen ozone_z = (ozone_value - r(mean)) / r(sd)
+
+summarize pm25_value 
+gen pm25_z = (pm25_value - r(mean)) / r(sd)
+
+graph twoway (kdensity ozone_z) (kdensity pm25_z), title(Distribution of Ozone and PM2.5) legend(order(1 "Ozone" 2 "PM2.5")) xtitle(Value) ytitle(Density)
+graph export ../results/figures/sec2_1_kernel.pdf, as(pdf) replace 
+
+// Yes we can preserve the distribution while standarzing the scales
+
 
 log close

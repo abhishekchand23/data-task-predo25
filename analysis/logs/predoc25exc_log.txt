@@ -3,7 +3,7 @@
        log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
 > exc_log.txt
   log type:  text
- opened on:   4 Jan 2026, 08:58:27
+ opened on:   5 Jan 2026, 13:24:49
 
 . 
 . * import raw data
@@ -56,7 +56,7 @@ file ../data/pm.dta saved
 file ../data/dfmerged.dta saved
 
 . 
-. use ../data/dfmerged
+. use ../data/dfmerged, clear
 
 . 
 . * 2. Produce a table with the mean, median, minimum, maximum, and standard deviation f
@@ -114,12 +114,7 @@ ozone_source |         N      Mean       p50       Min       Max        SD
 . by county_code: gen gap = date - date[_n-1]
 (44 missing values generated)
 
-. levelsof county_name if gap > 1 & !missing(gap), local(counties_with_gap)
-`"Alameda"' `"Butte"' `"Calaveras"' `"Colusa"' `"Contra Costa"' `"Glenn"' `"Humboldt"' `
-> "Imperial"' `"Kings"' `"Lake"' `"Madera"' `"Marin"' `"Mariposa"' `"Merced"' `"Nevada"'
->  `"Orange"' `"San Benito"' `"San Francisco"' `"San Joaquin"' `"San Luis Obispo"' `"San
->  Mateo"' `"Santa Clara"' `"Santa Cruz"' `"Shasta"' `"Siskiyou"' `"Solano"' `"Sonoma"' 
-> `"Stanislaus"' `"Sutter"' `"Tehama"' `"Yolo"'
+. quietly levelsof county_name if gap > 1 & !missing(gap), local(counties_with_gap)
 
 . 
 . unique county_name if gap > 1 & !missing(gap)
@@ -127,16 +122,86 @@ Number of unique values of county_name is  31
 Number of records is  498
 
 . 
-. /*
-> foreach county of local counties_with_gap{
->         display "----`county'----"
-> }
-> */
+. 
+. foreach county of local counties_with_gap{
+  2.         display "----`county'----"
+  3. }
+----Alameda----
+----Butte----
+----Calaveras----
+----Colusa----
+----Contra Costa----
+----Glenn----
+----Humboldt----
+----Imperial----
+----Kings----
+----Lake----
+----Madera----
+----Marin----
+----Mariposa----
+----Merced----
+----Nevada----
+----Orange----
+----San Benito----
+----San Francisco----
+----San Joaquin----
+----San Luis Obispo----
+----San Mateo----
+----Santa Clara----
+----Santa Cruz----
+----Shasta----
+----Siskiyou----
+----Solano----
+----Sonoma----
+----Stanislaus----
+----Sutter----
+----Tehama----
+----Yolo----
+
+. 
+. ******************************************************
+. * Section 2
+. ******************************************************
+. 
+. * 1. Produce a plot showing the distributions of ozone and PM 2.5. The distributions s
+> hould be separate lines, sets of dots, bars, etc, but on the same set of axis. Choose 
+> an appropriate type of graph to complete this task and make your graph easy to digest.
+>  Hint: Pay attention to the scale of the variables. Can we preserve the distribution w
+> hile standardizing the scales?
+. summarize ozone_value
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+ ozone_value |     14,515    .0408301    .0129988       .002       .101
+
+. gen ozone_z = (ozone_value - r(mean)) / r(sd)
+
+. 
+. summarize pm25_value 
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+  pm25_value |     14,515    7.050578    4.983097       -2.8         79
+
+. gen pm25_z = (pm25_value - r(mean)) / r(sd)
+
+. 
+. graph twoway (kdensity ozone_z) (kdensity pm25_z), title(Distribution of Ozone and PM2
+> .5) legend(order(1 "Ozone" 2 "PM2.5")) xtitle(Value) ytitle(Density)
+
+. graph export ../results/figures/sec2_1_kernel.pdf, as(pdf) replace 
+file
+    /Users/kismet/economics/predoc_datatask25/analysis/scripts/../results/figures/sec2
+    > _1_kernel.pdf saved as PDF format
+
+. 
+. // Yes we can preserve the distribution while standarzing the scales
+. 
 . 
 . log close
       name:  <unnamed>
        log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
 > exc_log.txt
   log type:  text
- closed on:   4 Jan 2026, 08:58:27
+ closed on:   5 Jan 2026, 13:24:50
 ----------------------------------------------------------------------------------------
