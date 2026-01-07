@@ -103,12 +103,15 @@ graph export ../results/figures/sec2_2_ozone_la_feb.pdf, as(pdf) replace
 
 * 1. Estimate the association between pollution and mortality by running the following regression: Mortalityit = β0 + β1AQIit + αi + αt (1) where αi and αt are fixed effects for county i and time t. Report and interpret β1. Why do we include fixed effects?
 
-xtreg mortality aqui i.date, fe
+xtreg mortality aqi i.date, fe
 // a unit increase in the aqi on average increases by 0.5277
 // county fixed effects absorb the heterogenity between the countries
 // time fixed effects control for events that affected all the counties on a specific day
 // As we are interested in understanding how aqi affects the mortality, we need to include fixed effects to absord the heterogenity across time and county.
 
+* 2. I am concerned that yesterday's pollution affects mortality too. Include one lag of AQI and rerun the regression. Report and interpret the coefficients on AQI and yesterday's AQI.
+xtreg mortality aqi L.aqi i.date, fe
+//  The lag of aqi affects mortality more than aqi on the current day. 0.06 unit difference. The coefficients are statistically significant
 
 
 log close
