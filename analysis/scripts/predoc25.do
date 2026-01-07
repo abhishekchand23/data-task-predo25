@@ -110,8 +110,23 @@ xtreg mortality aqi i.date, fe
 // As we are interested in understanding how aqi affects the mortality, we need to include fixed effects to absord the heterogenity across time and county.
 
 * 2. I am concerned that yesterday's pollution affects mortality too. Include one lag of AQI and rerun the regression. Report and interpret the coefficients on AQI and yesterday's AQI.
+
 xtreg mortality aqi L.aqi i.date, fe
 //  The lag of aqi affects mortality more than aqi on the current day. 0.06 unit difference. The coefficients are statistically significant
+
+* 3. I am curious if the relationship differs by whether a county is in a CBSA. Rerun the original regression from Section 3, Question 1, but add an interaction between an indicator for whether a county is in a CBSA and AQI (i..e, AQIit × 1i∈CBSA). Interpret the coefficients.
+
+gen cbsaind = 1 if !missing(cbsacode)
+replace cbsaind = 0 if missing(cbsaind)
+gen aqi_cbsa_ind = aqi*cbsaind
+xtreg mortality aqi aqi_cbsa_ind i.date, fe
+
+// aqi impact is lower on average on mortality if county is in a CBSA
+
+* 4. I did not ask you to include a separate variable for whether a county is in a CBSA but just the interaction. If you were to include it, it would be omitted as collinear. What is it collinear with?
+
+// chatgpt it is collinear with county fixed effects 
+
 
 
 log close
