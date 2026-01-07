@@ -3,7 +3,7 @@
        log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
 > exc_log.txt
   log type:  text
- opened on:   5 Jan 2026, 13:24:49
+ opened on:   7 Jan 2026, 16:21:20
 
 . 
 . * import raw data
@@ -197,11 +197,30 @@ file
 . 
 . // Yes we can preserve the distribution while standarzing the scales
 . 
+. * 2. Produce a time series plot of ozone for Los Angeles county (Code: 037) in the mon
+> th of February. Do you suspect autocorrelation? 1 How might you test for it (you do no
+> t need to test it)?
 . 
+. xtset county_code date
+
+Panel variable: county_code (unbalanced)
+ Time variable: date, 01jan2024 to 31dec2024, but with gaps
+         Delta: 1 day
+
+. tsline ozone_value if county_code == 37 & month(date) == 2
+
+. graph export ../results/figures/sec2_2_ozone_la_feb.pdf, as(pdf) replace
+file
+    /Users/kismet/economics/predoc_datatask25/analysis/scripts/../results/figures/sec2
+    > _2_ozone_la_feb.pdf saved as PDF format
+
+. 
+. 
+. // Yes 
 . log close
       name:  <unnamed>
        log:  /Users/kismet/economics/predoc_datatask25/analysis/scripts/../logs/predoc25
 > exc_log.txt
   log type:  text
- closed on:   5 Jan 2026, 13:24:50
+ closed on:   7 Jan 2026, 16:21:22
 ----------------------------------------------------------------------------------------

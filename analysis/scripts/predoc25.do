@@ -91,5 +91,24 @@ graph export ../results/figures/sec2_1_kernel.pdf, as(pdf) replace
 
 // Yes we can preserve the distribution while standarzing the scales
 
+* 2. Produce a time series plot of ozone for Los Angeles county (Code: 037) in the month of February. Do you suspect autocorrelation? 1 How might you test for it (you do not need to test it)?
+
+xtset county_code date
+tsline ozone_value if county_code == 37 & month(date) == 2
+graph export ../results/figures/sec2_2_ozone_la_feb.pdf, as(pdf) replace
+
+******************************************************
+* Section 3: POLLUTION AND MORTALITY
+******************************************************
+
+* 1. Estimate the association between pollution and mortality by running the following regression: Mortalityit = β0 + β1AQIit + αi + αt (1) where αi and αt are fixed effects for county i and time t. Report and interpret β1. Why do we include fixed effects?
+
+xtreg mortality aqui i.date, fe
+// a unit increase in the aqi on average increases by 0.5277
+// county fixed effects absorb the heterogenity between the countries
+// time fixed effects control for events that affected all the counties on a specific day
+// As we are interested in understanding how aqi affects the mortality, we need to include fixed effects to absord the heterogenity across time and county.
+
+
 
 log close
